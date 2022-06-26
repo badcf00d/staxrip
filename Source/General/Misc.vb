@@ -1274,6 +1274,8 @@ Public Class Subtitle
                     Return "ssa"
                 Case "S_TEXT/USF", "USF"
                     Return "usf"
+                Case "S_DVBSUB", "DVB Subtitle"
+                    Return "mks"
                 Case Else
                     Return Path.Ext
             End Select
@@ -1487,7 +1489,7 @@ Public Class Subtitle
                 proc.SkipString = "Progress: "
                 proc.Encoding = Encoding.UTF8
                 proc.Package = Package.mkvmerge
-                proc.Arguments = args
+                proc.Arguments = args + " --ui-language en"
                 proc.AllowedExitCodes = {0, 1, 2}
                 proc.Start()
             End Using

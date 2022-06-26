@@ -300,8 +300,8 @@ Public Class GlobalCommands
         Select Case topic
             Case "info"
                 form.Doc.WriteStart(GetApplicationDetails())
-                form.Doc.Write("Active Authors", "Dendraspis, JKyle, Patman, DJATOM")
-                form.Doc.Write("Retired Authors", "stax76, 44vince44, Revan654, NikosD, jernst, Brother John, Freepik, ilko-k, nulledone, vanontom")
+                form.Doc.Write("Active Authors", "Dendraspis, Patman, DJATOM")
+                form.Doc.Write("Retired Authors", "stax76, JKyle, 44vince44, Revan654, NikosD, jernst, Brother John, Freepik, ilko-k, nulledone, vanontom")
                 form.Doc.Writer.WriteRaw("<hr>")
 
                 Dim licensePath = Folder.Startup + "License.txt"
@@ -708,11 +708,11 @@ Public Class GlobalCommands
                     sw.Start()
 
                     Dim reportWhenFinished = True
-                    Dim reportTD As TaskDialog(Of DialogResult)
-                    Dim summaryTD As TaskDialog(Of DialogResult)
-                    Dim closingTD As TaskDialog(Of DialogResult)
+                    Dim reportTD As TaskDialog(Of DialogResult) = Nothing
+                    Dim summaryTD As TaskDialog(Of DialogResult) = Nothing
+                    Dim closingTD As TaskDialog(Of DialogResult) = Nothing
                     Dim cts = New CancellationTokenSource()
-                    Dim mainFormClosingHandler As FormClosingEventHandler
+                    Dim mainFormClosingHandler As FormClosingEventHandler = Nothing
                     mainFormClosingHandler = Sub(sender As Object, e As FormClosingEventArgs)
                                                  If Not e.Cancel Then
                                                      Using closingTD

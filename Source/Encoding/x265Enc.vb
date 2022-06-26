@@ -475,11 +475,18 @@ Public Class x265Params
         .Switch = "--aq-mode",
         .Text = "AQ Mode",
         .IntegerValue = True,
-        .Options = {"0: Disabled", "1: AQ enabled", "2: AQ enabled with auto-variance", "3: AQ enabled with auto-variance with bias to dark scenes", "4: AQ enabled with auto-variance and edge information"}}
+        .Options = {"0: Disabled", "1: AQ enabled", "2: AQ enabled with auto-variance", "3: AQ enabled with auto-variance with bias to dark scenes", "4: AQ enabled with auto-variance and edge information", "5: AQ enabled with auto-variance, edge information and bias to dark scenes."}}
 
     Property AQStrength As New NumParam With {
         .Switch = "--aq-strength",
         .Text = "AQ Strength",
+        .Config = {0, 3, 0.05, 2}}
+
+    Property AQBiasStrength As New NumParam With {
+        .Switch = "--aq-bias-strength",
+        .Text = "AQ Bias Strength",
+        .VisibleFunc = Function() AQmode.Value = 3 OrElse AQmode.Value = 5,
+        .Init = 1,
         .Config = {0, 3, 0.05, 2}}
 
     Property CUtree As New BoolParam With {
@@ -861,6 +868,8 @@ Public Class x265Params
                             End If
                         ElseIf Deblock.DefaultValue Then
                             Return "--no-deblock"
+                        Else
+                            Return ""
                         End If
                     End Function,
         .ImportAction = Sub(param, arg)
@@ -968,7 +977,7 @@ Public Class x265Params
                 Add("Rate Control",
                     New StringParam With {.Switch = "--zones", .Text = "Zones"},
                     New StringParam With {.Switch = "--zonefile", .Text = "Zone File", .BrowseFile = True},
-                    AQmode, qgSize, AQStrength, QComp, qpmin, qpmax, qpstep,
+                    AQmode, qgSize, AQStrength, AQBiasStrength, QComp, qpmin, qpmax, qpstep,
                     New NumParam With {.Switch = "--qp-delta-ref", .Text = "QP Delta Ref", .Init = 5, .Config = {0, 10, 0.5, 1}},
                     New NumParam With {.Switch = "--qp-delta-nonref", .Text = "QP Delta NonRef", .Init = 5, .Config = {0, 10, 0.5, 1}},
                     New NumParam With {.Switch = "--cbqpoffs", .Text = "CB QP Offset", .Config = {-12, 12}},
@@ -1048,7 +1057,7 @@ Public Class x265Params
                     New OptionParam With {.Switch = "--transfer", .Text = "Transfer", .Options = {"Undefined", "ARIB-STD-B67", "BT 1361 E", "BT 2020-10", "BT 2020-12", "BT 470 BG", "BT 470 M", "BT 709", "IEC 61966-2-1", "IEC 61966-2-4", "Linear", "Log 100", "Log 316", "SMPTE 170 M", "SMPTE 2084", "SMPTE 240 M", "SMPTE 428"}},
                     New OptionParam With {.Switch = "--range", .Text = "Range", .Options = {"Undefined", "Limited", "Full"}},
                     minLuma, maxLuma, MaxCLL, MaxFALL,
-                    New NumParam With {.Switch = "--atc-sei", .Text = "Alternative transfer SEI:", .Init = -1, .Config = {-1, 12, 1}},
+                    New NumParam With {.Switch = "--atc-sei", .Text = "Alternative transfer SEI:", .Init = -1, .Config = {-1, 99, 1}},
                     New NumParam With {.Switch = "--pic-struct", .Text = "Picture structure in SEI:", .Init = -1, .Config = {-1, 12, 1}},
                     New BoolParam With {.Switch = "--cll", .NoSwitch = "--no-cll", .Text = "Emit content light level info SEI", .Init = True},
                     New BoolParam With {.Switch = "--hdr10-opt", .NoSwitch = "--no-hdr10-opt", .Text = "Block-level luma and chroma QP optimization for HDR10 content"},
@@ -1061,7 +1070,7 @@ Public Class x265Params
                     New OptionParam With {.Switch = "--display-window", .Text = "Display Window", .Options = {"Undefined", "Left", "Top", "Right", "Top"}},
                     Chromaloc)
                 Add("Bitstream",
-                    New OptionParam With {.Switch = "--dolby-vision-profile", .Text = "Dolby Vision Profile", .Options = {"0", "5", "8.1", "8.2"}},
+                    New OptionParam With {.Switch = "--dolby-vision-profile", .Text = "Dolby Vision Profile", .Options = {"0", "5", "8.1", "8.2", "8.4"}},
                     New StringParam With {.Switch = "--dolby-vision-rpu", .Text = "Dolby Vision RPU", .BrowseFile = True},
                     New NumParam With {.Switch = "--log2-max-poc-lsb", .Text = "Maximum Picture Order Count", .Init = 8},
                     Info, RepeatHeaders, AUD, HRD,
@@ -1462,11 +1471,14 @@ Public Class x265Params
         If Custom.Value?.Contains(switch + " ") OrElse Custom.Value?.EndsWith(switch) Then
             Return True
         End If
+
+        Return False
     End Function
 
     Sub ApplyPresetValues()
         AQmode.Value = 2
         AQStrength.Value = 1
+        AQBiasStrength.Value = 1
         CUtree.Value = True
         Deblock.Value = True
         DeblockA.Value = 0
@@ -2027,6 +2039,7 @@ Public Class x265Params
     End Sub
 
     Sub ApplyTuneValues()
+        AQBiasStrength.Value = 1
         RcGrain.Value = False
         qpstep.Value = 4
         ConstVBV.Value = False

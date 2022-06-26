@@ -30,6 +30,24 @@ Public Class QSVEnc
         End Set
     End Property
 
+    Overrides Property Bitrate As Integer
+        Get
+            Return CInt(Params.Bitrate.Value)
+        End Get
+        Set(value As Integer)
+            Params.Bitrate.Value = value
+        End Set
+    End Property
+
+    Public Sub New()
+        MyBase.New()
+    End Sub
+
+    Public Sub New(codecIndex As Integer)
+        MyBase.New()
+        Params.Codec.Value = If(codecIndex > 0 AndAlso codecIndex < Params.Codec.Values.Length, codecIndex, 0)
+    End Sub
+
     Overrides Sub ShowConfigDialog()
         Dim params1 As New EncoderParams
         Dim store = ObjectHelp.GetCopy(ParamsStore)
@@ -158,21 +176,35 @@ Public Class QSVEnc
         Property Codec As New OptionParam With {
             .Switch = "--codec",
             .Text = "Codec",
-            .Options = {"Intel H.264", "Intel H.265", "Intel MPEG-2"},
-            .Values = {"h264", "hevc", "mpeg2"}}
+            .Options = {"Intel H.264", "Intel H.265", "Intel MPEG-2", "Intel VP9", "Intel AV1 (Experimental)"},
+            .Values = {"h264", "hevc", "mpeg2", "vp9", "av1"}}
 
         Property Mode As New OptionParam With {
-            .Switches = {"--avbr", "--cbr", "--vbr", "--qvbr-q", "--cqp", "--icq", "--la-icq", "--vcm", "--la", "--la-hrd", "--qvbr"},
+            .Switches = {"--avbr", "--cbr", "--vbr", "--cqp", "--icq", "--la-icq", "--vcm", "--la", "--la-hrd", "--qvbr"},
             .Name = "Mode",
             .Text = "Mode",
-            .Options = {"AVBR - Average Variable Bitrate", "CBR - Constant Bitrate", "CQP - Constant QP", "ICQ - Intelligent Constant Quality", "LA - VBR Lookahead", "LA-HRD - VBR HRD Lookahead", "LA-ICQ - Intelligent Constant Quality Lookahead", "QVBR - Quality Variable Bitrate using bitrate", "QVBR-Q - Quality Variable Bitrate using quality", "VBR - Variable Bitrate", "VCM - Video Conferencing Mode"},
-            .Values = {"avbr", "cbr", "cqp", "icq", "la", "la-hrd", "la-icq", "qvbr", "qvbr-q", "vbr", "vcm"},
+            .Options = {"AVBR - Average Variable Bitrate", "CBR - Constant Bitrate", "CQP - Constant QP", "ICQ - Intelligent Constant Quality", "LA - VBR Lookahead", "LA-HRD - VBR HRD Lookahead", "LA-ICQ - Intelligent Constant Quality Lookahead", "QVBR - Quality-Defined Variable Bitrate", "VBR - Variable Bitrate", "VCM - Video Conferencing Mode"},
+            .Values = {"avbr", "cbr", "cqp", "icq", "la", "la-hrd", "la-icq", "qvbr", "vbr", "vcm"},
             .Init = 2}
+
+        Property Bitrate As New NumParam With {
+            .HelpSwitch = "--bitrate",
+            .Text = "Bitrate",
+            .Init = 5000,
+            .VisibleFunc = Function() Mode.Value < 2 OrElse Mode.Value = 4 OrElse Mode.Value = 5 OrElse Mode.Value = 7 OrElse Mode.Value = 8,
+            .Config = {0, 1000000, 100}}
+
+        Property QvbrQuality As New NumParam With {
+            .Switch = "--qvbr-quality",
+            .Text = "QVBR Quality",
+            .Init = 23,
+            .VisibleFunc = Function() Mode.Value = 7,
+            .Config = {0, 51, 1}}
 
         Property Quality As New NumParam With {
             .Text = "Quality",
             .Init = 23,
-            .VisibleFunc = Function() {"icq", "la-icq", "qvbr-q"}.Contains(Mode.ValueText),
+            .VisibleFunc = Function() {"icq", "la-icq"}.Contains(Mode.ValueText),
             .Config = {0, 63}}
 
         Property QPI As New NumParam With {
@@ -270,7 +302,7 @@ Public Class QSVEnc
                         New OptionParam With {.Switch = "--level", .Name = "LevelHEVC", .Text = "Level", .VisibleFunc = Function() Codec.Value = 1, .Options = {"Automatic", "1", "2", "2.1", "3", "3.1", "4", "4.1", "5", "5.1", "5.2", "6", "6.1", "6.2"}},
                         New OptionParam With {.Switch = "--level", .Text = "Level", .VisibleFunc = Function() Codec.Value = 0, .Options = {"Automatic", "1", "1b", "1.1", "1.2", "1.3", "2", "2.1", "2.2", "3", "3.1", "3.2", "4", "4.1", "4.2", "5", "5.1", "5.2"}},
                         New OptionParam With {.Switch = "--level", .Name = "LevelMPEG2", .Text = "Level", .VisibleFunc = Function() Codec.Value = 2, .Options = {"Automatic", "low", "main", "high", "High1440"}},
-                        Quality, QPI, QPP, QPB)
+                        QPI, QPP, QPB, Bitrate, QvbrQuality, Quality)
                     Add("Analysis",
                         New OptionParam With {.Switch = "--trellis", .Text = "Trellis", .Options = {"Automatic", "Off", "I", "IP", "All"}},
                         New OptionParam With {.Switch = "--ctu", .Text = "CTU", .Options = {"16", "32", "64"}, .VisibleFunc = Function() Codec.ValueText = "hevc"},
@@ -324,6 +356,9 @@ Public Class QSVEnc
                     Add("VUI",
                         New StringParam With {.Switch = "--master-display", .Text = "Master Display", .VisibleFunc = Function() Codec.ValueText = "hevc"},
                         New StringParam With {.Switch = "--sar", .Text = "Sample Aspect Ratio", .Init = "auto", .Menu = s.ParMenu, .ArgsFunc = AddressOf GetSAR},
+                        New StringParam With {.Switch = "--dhdr10-info", .Text = "HDR10 Info File", .BrowseFile = True},
+                        New StringParam With {.Switch = "--dolby-vision-rpu", .Text = "Dolby Vision RPU", .BrowseFile = True},
+                        New OptionParam With {.Switch = "--dolby-vision-profile", .Text = "Dolby Vision Profile", .Options = {"Undefined", "5.0", "8.1", "8.2", "8.4"}},
                         New OptionParam With {.Switch = "--videoformat", .Text = "Videoformat", .Options = {"Undefined", "NTSC", "Component", "PAL", "SECAM", "MAC"}},
                         New OptionParam With {.Switch = "--colormatrix", .Text = "Colormatrix", .Options = {"Undefined", "BT 2020 NC", "BT 2020 C", "BT 470 BG", "BT 709", "FCC", "GBR", "SMPTE 170 M", "SMPTE 240 M", "YCgCo"}},
                         New OptionParam With {.Switch = "--colorprim", .Text = "Colorprim", .Options = {"Undefined", "BT 709", "SMPTE 170 M", "BT 470 M", "BT 470 BG", "SMPTE 240 M", "Film", "BT 2020"}},
@@ -353,7 +388,8 @@ Public Class QSVEnc
                         New BoolParam With {.Switch = "--tskip", .Text = "T-Skip", .VisibleFunc = Function() Codec.ValueText = "hevc"},
                         New BoolParam With {.Switch = "--fade-detect", .Text = "Fade Detection"},
                         New BoolParam With {.Switch = "--lowlatency", .Text = "Low Latency"},
-                        New BoolParam With {.Switch = "--timecode", .Text = "Output timecode file"})
+                        New BoolParam With {.Switch = "--timecode", .Text = "Output timecode file"},
+                        New StringParam With {.Switch = "--thread-affinity", .Text = "Thread Affinity"})
                 End If
 
                 Return ItemsValue
@@ -390,7 +426,7 @@ Public Class QSVEnc
             includeExecutable As Boolean,
             Optional pass As Integer = 1) As String
 
-            Dim ret As String
+            Dim ret As String = ""
             Dim sourcePath = p.Script.Path
             Dim targetPath = p.VideoEncoder.OutputPath.ChangeExt(p.VideoEncoder.OutputExt)
 
@@ -438,8 +474,8 @@ Public Class QSVEnc
             Select Case Mode.ValueText
                 Case "icq", "la-icq"
                     ret += " --" + Mode.ValueText + " " & CInt(Quality.Value)
-                Case "qvbr-q"
-                    ret += " --qvbr-q " & CInt(Quality.Value) & " --qvbr " & p.VideoBitrate
+                Case "qvbr"
+                    ret += " --qvbr " & If(pass = 1, Bitrate.Value, p.VideoBitrate)
                 Case "cqp"
                     ret += " --cqp " & CInt(QPI.Value) & ":" & CInt(QPP.Value) & ":" & CInt(QPB.Value)
 
@@ -501,6 +537,7 @@ Public Class QSVEnc
                     Return "--vpp-mctf"
                 End If
             End If
+            Return ""
         End Function
 
         Public Overrides Function GetPackage() As Package

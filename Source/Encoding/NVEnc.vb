@@ -30,6 +30,15 @@ Public Class NVEnc
         End Set
     End Property
 
+    Public Sub New()
+        MyBase.New()
+    End Sub
+
+    Public Sub New(codecIndex As Integer)
+        MyBase.New()
+        Params.Codec.Value = If(codecIndex > 0 AndAlso codecIndex < Params.Codec.Values.Length, codecIndex, 0)
+    End Sub
+
     Overrides Sub ShowConfigDialog()
         Dim newParams As New EncoderParams
         Dim store = ObjectHelp.GetCopy(ParamsStore)
@@ -252,9 +261,9 @@ Public Class NVEnc
             .Config = {0, 51, 1, 1},
             .VisibleFunc = Function() Mode.Value = 2 AndAlso ConstantQualityMode.Value,
             .ArgsFunc = Function()
-                            If ConstantQualityMode.Value AndAlso VbrQuality.Value <> VbrQuality.DefaultValue Then
-                                Return "--vbr-quality " & VbrQuality.Value.ToInvariantString
-                            End If
+                            Return If(ConstantQualityMode.Value AndAlso VbrQuality.Value <> VbrQuality.DefaultValue,
+                                "--vbr-quality " & VbrQuality.Value.ToInvariantString,
+                                "")
                         End Function}
 
         Property AQ As New BoolParam With {
@@ -316,6 +325,14 @@ Public Class NVEnc
         Property KnnStrength As New NumParam With {.Text = "      Strength", .Init = 0.08, .Config = {0, 1, 0.02, 2}}
         Property KnnLerp As New NumParam With {.Text = "      Lerp", .Init = 0.2, .Config = {0, Integer.MaxValue, 0.1, 1}}
         Property KnnThLerp As New NumParam With {.Text = "      TH Lerp", .Init = 0.8, .Config = {0, 1, 0.1, 1}}
+
+        Property Convolution As New BoolParam With {.Switch = "--vpp-convolution3d", .Text = "3D noise reduction", .ArgsFunc = AddressOf GetConvolution3dArgs}
+        Property ConvolutionMatrix As New OptionParam With {.Text = "      Matrix", .Init = 0, .Options = {"Original", "Standard", "Simple"}, .Values = {"original", "standard", "simple"}}
+        Property ConvolutionFast As New OptionParam With {.Text = "      Fast", .Init = 0, .Options = {"False", "True"}, .Values = {"false", "true"}}
+        Property ConvolutionYthresh As New NumParam With {.Text = "      Spatial luma threshold", .Init = 3, .Config = {0, 255, 1, 1}}
+        Property ConvolutionCthresh As New NumParam With {.Text = "      Spatial chroma threshold", .Init = 4, .Config = {0, 255, 1, 1}}
+        Property ConvolutionTYthresh As New NumParam With {.Text = "      Temporal luma threshold", .Init = 3, .Config = {0, 255, 1, 1}}
+        Property ConvolutionTCthresh As New NumParam With {.Text = "      Temporal chroma threshold", .Init = 4, .Config = {0, 255, 1, 1}}
 
         Property Pad As New BoolParam With {.Switch = "--vpp-pad", .Text = "Padding", .ArgsFunc = AddressOf GetPaddingArgs}
         Property PadLeft As New NumParam With {.Text = "      Left"}
@@ -408,6 +425,8 @@ Public Class NVEnc
         Property ColorspaceTransferTo As New OptionParam With {.Text = New String(" "c, 12) + "Transfer To", .HelpSwitch = "--vpp-colorspace", .Init = 0, .Options = {"auto", "bt709", "smpte170m", "bt470m", "bt470bg", "smpte240m", "linear", "log100", "log316", "iec61966-2-4", "iec61966-2-1", "bt2020-10", "bt2020-12", "smpte2084", "arib-std-b67"}, .VisibleFunc = Function() ColorspaceTransferFrom.Value > 0}
         Property ColorspaceRangeFrom As New OptionParam With {.Text = New String(" "c, 6) + "Range From", .HelpSwitch = "--vpp-colorspace", .Init = 0, .Options = {"Undefined", "auto", "limited", "full"}}
         Property ColorspaceRangeTo As New OptionParam With {.Text = New String(" "c, 12) + "Range To", .HelpSwitch = "--vpp-colorspace", .Init = 0, .Options = {"auto", "limited", "full"}, .VisibleFunc = Function() ColorspaceRangeFrom.Value > 0}
+        Property ColorspaceLut3d As New StringParam With {.Text = New String(" "c, 6) + "Lut3D", .HelpSwitch = "--vpp-colorspace", .Init = "", .BrowseFile = True}
+        Property ColorspaceLut3dinterp As New OptionParam With {.Text = New String(" "c, 12) + "Interpolation", .HelpSwitch = "--vpp-colorspace", .Init = 1, .Options = {"nearest", "trilinear", "tetrahedral"}, .VisibleFunc = Function() ColorspaceLut3d.Value.Trim().Length > 0}
         Property ColorspaceHdr2sdr As New OptionParam With {.Text = New String(" "c, 0) + "HDR10 to SDR using this tonemapping:", .HelpSwitch = "--vpp-colorspace", .Init = 0, .Options = {"none", "hable", "mobius", "reinhard", "bt2390"}}
         Property ColorspaceHdr2sdrSourcepeak As New NumParam With {.Text = New String(" "c, 6) + "Source Peak", .HelpSwitch = "--vpp-colorspace", .Init = 1000, .Config = {0, 10000, 1, 1}, .VisibleFunc = Function() ColorspaceHdr2sdr.Value > 0}
         Property ColorspaceHdr2sdrLdrnits As New NumParam With {.Text = New String(" "c, 6) + "Target brightness", .HelpSwitch = "--vpp-colorspace", .Init = 100.0, .Config = {0, 1000, 1, 1}, .VisibleFunc = Function() ColorspaceHdr2sdr.Value > 0}
@@ -514,7 +533,9 @@ Public Class NVEnc
                         ColorspaceTransferFrom,
                         ColorspaceTransferTo,
                         ColorspaceRangeFrom,
-                        ColorspaceRangeTo)
+                        ColorspaceRangeTo,
+                        ColorspaceLut3d,
+                        ColorspaceLut3dinterp)
                     Add("VPP | Colorspace | HDR2SDR",
                         ColorspaceHdr2sdr,
                         ColorspaceHdr2sdrSourcepeak,
@@ -556,6 +577,7 @@ Public Class NVEnc
                         AfsShift, AfsDrop, AfsSmooth, Afs24fps, AfsTune, AfsRFF, AfsTimecode, AfsLog)
                     Add("VPP | Denoise",
                         Knn, KnnRadius, KnnStrength, KnnLerp, KnnThLerp,
+                        Convolution, ConvolutionMatrix, ConvolutionFast, ConvolutionYthresh, ConvolutionCthresh, ConvolutionTYthresh, ConvolutionTCthresh,
                         Pmd, PmdApplyCount, PmdStrength, PmdThreshold)
                     Add("VPP | Sharpness",
                         New OptionParam With {.Switch = "--vpp-gauss", .Text = "Gauss", .Options = {"Disabled", "3", "5", "7"}},
@@ -566,6 +588,8 @@ Public Class NVEnc
                         New StringParam With {.Switch = "--master-display", .Text = "Master Display", .VisibleFunc = Function() Codec.ValueText = "h265"},
                         New StringParam With {.Switch = "--sar", .Text = "Sample Aspect Ratio", .Init = "auto", .Menu = s.ParMenu, .ArgsFunc = AddressOf GetSAR},
                         New StringParam With {.Switch = "--dhdr10-info", .Text = "HDR10 Info File", .BrowseFile = True},
+                        New StringParam With {.Switch = "--dolby-vision-rpu", .Text = "Dolby Vision RPU", .BrowseFile = True},
+                        New OptionParam With {.Switch = "--dolby-vision-profile", .Text = "Dolby Vision Profile", .Options = {"Undefined", "5.0", "8.1", "8.2", "8.4"}},
                         New OptionParam With {.Switch = "--videoformat", .Text = "Videoformat", .Options = {"Undefined", "NTSC", "Component", "PAL", "SECAM", "MAC"}},
                         New OptionParam With {.Switch = "--colormatrix", .Text = "Colormatrix", .Options = {"Undefined", "BT 2020 C", "BT 2020 NC", "BT 470 BG", "BT 709", "FCC", "GBR", "SMPTE 170 M", "SMPTE 240 M", "YCgCo"}},
                         New OptionParam With {.Switch = "--colorprim", .Text = "Colorprim", .Options = {"Undefined", "BT 2020", "BT 470 BG", "BT 470 M", "BT 709", "Film", "SMPTE 170 M", "SMPTE 240 M"}},
@@ -644,6 +668,8 @@ Public Class NVEnc
                 ColorspaceTransferTo.MenuButton.Enabled = Colorspace.Value
                 ColorspaceRangeFrom.MenuButton.Enabled = Colorspace.Value
                 ColorspaceRangeTo.MenuButton.Enabled = Colorspace.Value
+                ColorspaceLut3d.TextEdit.Enabled = Colorspace.Value
+                ColorspaceLut3dinterp.MenuButton.Enabled = Colorspace.Value
                 ColorspaceHdr2sdr.MenuButton.Enabled = Colorspace.Value
                 ColorspaceHdr2sdrSourcepeak.NumEdit.Enabled = Colorspace.Value
                 ColorspaceHdr2sdrLdrnits.NumEdit.Enabled = Colorspace.Value
@@ -683,6 +709,13 @@ Public Class NVEnc
                 KnnStrength.NumEdit.Enabled = Knn.Value
                 KnnLerp.NumEdit.Enabled = Knn.Value
                 KnnThLerp.NumEdit.Enabled = Knn.Value
+
+                ConvolutionMatrix.MenuButton.Enabled = Convolution.Value
+                ConvolutionFast.MenuButton.Enabled = Convolution.Value
+                ConvolutionYthresh.NumEdit.Enabled = Convolution.Value
+                ConvolutionCthresh.NumEdit.Enabled = Convolution.Value
+                ConvolutionTYthresh.NumEdit.Enabled = Convolution.Value
+                ConvolutionTCthresh.NumEdit.Enabled = Convolution.Value
 
                 PadLeft.NumEdit.Enabled = Pad.Value
                 PadTop.NumEdit.Enabled = Pad.Value
@@ -737,6 +770,7 @@ Public Class NVEnc
                 If SmoothPrec.Value <> SmoothPrec.DefaultValue Then ret += ",prec=" & SmoothPrec.ValueText
                 Return "--vpp-smooth " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetColorspaceArgs() As String
@@ -746,6 +780,7 @@ Public Class NVEnc
                 If ColorspaceColorprimFrom.Value <> ColorspaceColorprimFrom.DefaultValue Then ret += $",colorprim={ColorspaceColorprimFrom.ValueText}:{ColorspaceColorprimTo.ValueText}"
                 If ColorspaceTransferFrom.Value <> ColorspaceTransferFrom.DefaultValue Then ret += $",transfer={ColorspaceTransferFrom.ValueText}:{ColorspaceTransferTo.ValueText}"
                 If ColorspaceRangeFrom.Value <> ColorspaceRangeFrom.DefaultValue Then ret += $",range={ColorspaceRangeFrom.ValueText}:{ColorspaceRangeTo.ValueText}"
+                If ColorspaceLut3d.Value <> ColorspaceLut3d.DefaultValue Then ret += $",lut3d={ColorspaceLut3d.Value},lut3d_interp={ColorspaceLut3dinterp.ValueText}"
                 If ColorspaceHdr2sdr.Value <> ColorspaceHdr2sdr.DefaultValue Then
                     ret += $",hdr2sdr={ColorspaceHdr2sdr.ValueText}"
                     If ColorspaceHdr2sdrSourcepeak.Value <> ColorspaceHdr2sdrSourcepeak.DefaultValue Then ret += $",source_peak={ColorspaceHdr2sdrSourcepeak.Value.ToInvariantString("0.0")}"
@@ -772,6 +807,7 @@ Public Class NVEnc
                 End If
                 If ret <> "" Then Return "--vpp-colorspace " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetPmdArgs() As String
@@ -782,6 +818,7 @@ Public Class NVEnc
                 If PmdThreshold.Value <> PmdThreshold.DefaultValue Then ret += ",threshold=" & PmdThreshold.Value
                 Return "--vpp-pmd " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetTweakArgs() As String
@@ -794,6 +831,7 @@ Public Class NVEnc
                 If TweakHue.Value <> TweakHue.DefaultValue Then ret += ",hue=" & TweakHue.Value.ToInvariantString
                 Return "--vpp-tweak " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetPaddingArgs() As String
@@ -809,6 +847,21 @@ Public Class NVEnc
                 If KnnThLerp.Value <> KnnThLerp.DefaultValue Then ret += ",th_lerp=" & KnnThLerp.Value.ToInvariantString
                 Return "--vpp-knn " + ret.TrimStart(","c)
             End If
+            Return ""
+        End Function
+
+        Function GetConvolution3dArgs() As String
+            If Convolution.Value Then
+                Dim ret = ""
+                If ConvolutionMatrix .Value <> ConvolutionMatrix.DefaultValue Then ret += ",matrix=" & ConvolutionMatrix.ValueText
+                If ConvolutionFast.Value <> ConvolutionFast.DefaultValue Then ret += ",fast=" & ConvolutionFast.ValueText
+                If ConvolutionYthresh.Value <> ConvolutionYthresh.DefaultValue Then ret += ",ythresh=" & ConvolutionYthresh.Value.ToInvariantString
+                If ConvolutionCthresh.Value <> ConvolutionCthresh.DefaultValue Then ret += ",cthresh=" & ConvolutionCthresh.Value.ToInvariantString
+                If ConvolutionTYthresh.Value <> ConvolutionTYthresh.DefaultValue Then ret += ",t_ythresh=" & ConvolutionTYthresh.Value.ToInvariantString
+                If ConvolutionTCthresh.Value <> ConvolutionTCthresh.DefaultValue Then ret += ",t_cthresh=" & ConvolutionTCthresh.Value.ToInvariantString
+                Return "--vpp-convolution3d " + ret.TrimStart(","c)
+            End If
+            Return ""
         End Function
 
         Function GetDebandArgs() As String
@@ -828,6 +881,7 @@ Public Class NVEnc
                 If DebandRandEachFrame.Value Then ret += ",rand_each_frame"
                 Return "--vpp-deband " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetEdge() As String
@@ -839,6 +893,7 @@ Public Class NVEnc
                 If EdgelevelWhite.Value <> EdgelevelWhite.DefaultValue Then ret += ",white=" & EdgelevelWhite.Value.ToInvariantString
                 Return "--vpp-edgelevel " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetUnsharp() As String
@@ -849,6 +904,7 @@ Public Class NVEnc
                 If UnsharpThreshold.Value <> UnsharpThreshold.DefaultValue Then ret += ",threshold=" & UnsharpThreshold.Value.ToInvariantString
                 Return "--vpp-unsharp " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetWarpsharpArgs() As String
@@ -861,6 +917,7 @@ Public Class NVEnc
                 If WarpsharpChroma.Value <> WarpsharpChroma.DefaultValue Then ret += ",chroma=" & WarpsharpChroma.Value.ToInvariantString
                 Return "--vpp-warpsharp " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetTransform() As String
@@ -869,6 +926,7 @@ Public Class NVEnc
             If TransformFlipY.Value Then ret += ",flip_y=true"
             If TransformTranspose.Value Then ret += ",transpose=true"
             If ret <> "" Then Return ("--vpp-transform " + ret.TrimStart(","c))
+            Return ""
         End Function
 
         Function GetSelectEvery() As String
@@ -878,6 +936,7 @@ Public Class NVEnc
                 ret += "," + SelectEveryOffsets.Value.SplitNoEmptyAndWhiteSpace(" ", ",", ";").Select(Function(item) "offset=" + item).Join(",")
                 If ret <> "" Then Return "--vpp-select-every " + ret.TrimStart(","c)
             End If
+            Return ""
         End Function
 
         Function GetDeinterlacerArgs() As String
@@ -932,13 +991,14 @@ Public Class NVEnc
                 Case 2
                     Return "--vbr " & rate
             End Select
+            Return ""
         End Function
 
         Overrides Function GetCommandLine(
             includePaths As Boolean, includeExe As Boolean, Optional pass As Integer = 1) As String
 
-            Dim ret As String
-            Dim sourcePath As String
+            Dim ret As String = ""
+            Dim sourcePath As String = ""
             Dim targetPath = p.VideoEncoder.OutputPath.ChangeExt(p.VideoEncoder.OutputExt)
 
             If includePaths AndAlso includeExe Then
@@ -1030,6 +1090,7 @@ Public Class NVEnc
             If Custom.Value?.Contains(switch + " ") OrElse Custom.Value?.EndsWith(switch) Then
                 Return True
             End If
+            Return False
         End Function
 
         Public Overrides Function GetPackage() As Package

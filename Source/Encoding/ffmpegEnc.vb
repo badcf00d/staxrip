@@ -15,8 +15,13 @@ Public Class ffmpegEnc
         End Get
     End Property
 
-    Sub New()
+    Public Sub New()
         Muxer = New ffmpegMuxer("AVI")
+    End Sub
+
+    Public Sub New(codecIndex As Integer)
+        Me.New()
+        Params.Codec.Value = If(codecIndex > 0 AndAlso codecIndex < Params.Codec.Values.Length, codecIndex, 0)
     End Sub
 
     <NonSerialized>
@@ -335,6 +340,7 @@ Public Class ffmpegEnc
             If Custom.Value?.Contains(switch + " ") OrElse Custom.Value?.EndsWith(switch) Then
                 Return True
             End If
+            Return False
         End Function
 
         Public Overrides Function GetPackage() As Package
@@ -363,6 +369,7 @@ Public Class ffmpegEnc
                     End If
                 End If
             End If
+            Return ""
         End Function
     End Class
 

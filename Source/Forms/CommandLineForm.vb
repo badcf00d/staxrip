@@ -26,10 +26,10 @@ Public Class CommandLineForm
 
         For Each param In params.Items
             If param.GetKey = "" OrElse singleList.Contains(param.GetKey) Then
-                Throw New Exception("key found twice: " + param.GetKey)
+                'Throw New Exception("key found twice: " + param.GetKey)
+            Else
+                singleList.Add(param.GetKey)
             End If
-
-            singleList.Add(param.GetKey)
         Next
 
         Me.Params = params
@@ -120,8 +120,8 @@ Public Class CommandLineForm
 
     Sub InitUI()
         Dim flowPanels As New List(Of Control)
-        Dim helpControl As Control
-        Dim currentFlow As SimpleUI.FlowPage
+        Dim helpControl As Control = Nothing
+        Dim currentFlow As SimpleUI.FlowPage = Nothing
 
         For x = 0 To Params.Items.Count - 1
             Dim param = Params.Items(x)

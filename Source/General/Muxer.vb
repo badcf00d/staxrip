@@ -234,8 +234,10 @@ Public MustInherit Class Muxer
                 End If
             End If
 
-            If TypeOf Me Is MkvMuxer AndAlso i.Contains("_attachment_") Then
-                Attachments.Add(i)
+            If p.AddAttachmentsToMuxer Then
+                If TypeOf Me Is MkvMuxer AndAlso i.Contains("_attachment_") Then
+                    Attachments.Add(i)
+                End If
             End If
         Next
 
@@ -699,7 +701,7 @@ Public Class MkvMuxer
             (TypeOf p.VideoEncoder Is AOMEnc AndAlso
             Not p.VideoEncoder.GetCommandLine(True, True).Contains(" --ivf")) Then
 
-            args += " --default-duration 0:" + p.Script.GetFramerate.ToString("f6", CultureInfo.InvariantCulture) + "fps"
+            args += " --default-duration 0:" + p.Script.GetCachedFramerate.ToString("f6", CultureInfo.InvariantCulture) + "fps"
         End If
 
         If TimestampsFile <> "" Then

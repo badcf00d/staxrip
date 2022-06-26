@@ -376,15 +376,15 @@ Public MustInherit Class AudioProfile
 
     Function ExpandMacros(value As String, silent As Boolean) As String
         If value = "" Then Return ""
-        If value.Contains("""%input%""") Then value = value.Replace("""%input%""", File.Escape)
         If value.Contains("%input%") Then value = value.Replace("%input%", File.Escape)
-        If value.Contains("""%output%""") Then value = value.Replace("""%output%""", GetOutputFile.Escape)
         If value.Contains("%output%") Then value = value.Replace("%output%", GetOutputFile.Escape)
         If value.Contains("%bitrate%") Then value = value.Replace("%bitrate%", Bitrate.ToString)
         If value.Contains("%channels%") Then value = value.Replace("%channels%", Channels.ToString)
         If value.Contains("%language_native%") Then value = value.Replace("%language_native%", Language.CultureInfo.NativeName)
         If value.Contains("%language_english%") Then value = value.Replace("%language_english%", Language.Name)
         If value.Contains("%delay%") Then value = value.Replace("%delay%", Delay.ToString)
+        If value.Contains("%streamid0%") AndAlso Stream IsNot Nothing Then value = value.Replace("%streamid0%", (Stream?.ID - 1)?.ToString)
+        If value.Contains("%streamid1%") Then value = value.Replace("%streamid1%", Stream?.ID.ToString)
 
         Return Macro.Expand(value)
     End Function
@@ -399,7 +399,7 @@ Public MustInherit Class AudioProfile
         ret.Add(New GUIAudioProfile(AudioCodec.MP3, 4))
         ret.Add(New GUIAudioProfile(AudioCodec.AC3, 1.0) With {.Channels = 6, .Bitrate = 640})
         ret.Add(New GUIAudioProfile(AudioCodec.EAC3, 1.0) With {.Channels = 6, .Bitrate = 640})
-        ret.Add(New BatchAudioProfile(640, {}, "ac3", 6, """%app:ffmpeg%"" -i ""%input%"" -b:a %bitrate%k -y -hide_banner ""%output%"""))
+        ret.Add(New BatchAudioProfile(640, {}, "ac3", 6, """%app:ffmpeg%"" -i %input% -b:a %bitrate%k -y -hide_banner %output%"))
         ret.Add(New MuxAudioProfile())
         ret.Add(New NullAudioProfile())
 
@@ -930,8 +930,8 @@ Public Class GUIAudioProfile
     End Property
 
     Function GetEac3toCommandLine(includePaths As Boolean) As String
-        Dim id As String
-        Dim sb As New StringBuilder
+        Dim id = ""
+        Dim sb As New StringBuilder()
 
         If File.Ext.EqualsAny("ts", "m2ts", "mkv") AndAlso Not Stream Is Nothing Then
             id = (Stream.StreamOrder + 1) & ": "
@@ -1062,10 +1062,11 @@ Public Class GUIAudioProfile
     End Function
 
     Function GetQaacCommandLine(includePaths As Boolean) As String
+        Dim usePipe = DecodingMode = AudioDecodingMode.Pipe OrElse ( Params.ChannelsMode <> ChannelsMode.Original AndAlso SupportedInput.Contains(File.Ext) )
         Dim sb As New StringBuilder
         includePaths = includePaths And File <> ""
 
-        If DecodingMode = AudioDecodingMode.Pipe Then
+        If usePipe Then
             sb.Append(GetPipeCommandLine(includePaths))
         End If
 
@@ -1123,7 +1124,7 @@ Public Class GUIAudioProfile
             sb.Append(" " + Params.CustomSwitches)
         End If
 
-        Dim input = If(DecodingMode = AudioDecodingMode.Pipe, "-", File.Escape)
+        Dim input = If(usePipe, "-", File.Escape)
 
         If includePaths Then
             sb.Append(" " + input + " -o " + GetOutputFile.Escape)
@@ -1339,7 +1340,7 @@ Public Class GUIAudioProfile
                 Exit Property
             End If
 
-            Dim ch As String
+            Dim ch = ""
 
             Select Case Params.ChannelsMode
                 Case ChannelsMode._8

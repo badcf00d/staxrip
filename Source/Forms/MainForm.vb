@@ -1542,7 +1542,7 @@ Public Class MainForm
     End Sub
 
     Async Sub UpdateTemplatesMenuAsync()
-        Dim files As String()
+        Dim files As String() = Nothing
 
         Await Task.Run(Sub()
                            Thread.Sleep(500)
@@ -1632,18 +1632,19 @@ Public Class MainForm
         JobManager.AddJob(sourcefile.Base, jobPath)
     End Sub
 
-    Sub LoadProject(path As String)
+    Function LoadProject(path As String) As Boolean
         Refresh()
 
         If Not File.Exists(path) Then
-            MsgWarn("Project file not found.")
+            MsgWarn("Project file not found.", $"{path}{BR}could not be found.")
             s.UpdateRecentProjects(path)
             UpdateRecentProjectsMenu()
             UpdateTemplatesMenuAsync()
+            Return False
         Else
-            OpenProject(path)
+            Return OpenProject(path)
         End If
-    End Sub
+    End Function
 
     Function OpenSaveProjectDialog() As Boolean
         Using dialog As New SaveFileDialog
@@ -2038,7 +2039,7 @@ Public Class MainForm
 
             FiltersListView.IsLoading = True
 
-            Dim preferredSourceFilter As VideoFilter
+            Dim preferredSourceFilter As VideoFilter = Nothing
 
             If p.SourceFiles.Count = 1 AndAlso
                 p.Script.Filters(0).Name = "Manual" AndAlso
@@ -2048,7 +2049,7 @@ Public Class MainForm
                 preferredSourceFilter = ShowSourceFilterSelectionDialog(files(0))
             End If
 
-            If Not preferredSourceFilter Is Nothing Then
+            If preferredSourceFilter IsNot Nothing Then
                 Dim isVapourSynth = preferredSourceFilter.Script.Replace(" ", "").Contains("clip=core.") OrElse
                     preferredSourceFilter.Script = "#vs"
 
@@ -2424,7 +2425,7 @@ Public Class MainForm
             Dim rot = MediaInfo.GetVideo(p.SourceFile, "Rotation").ToDouble
 
             If rot <> 0 Then
-                Dim name As String
+                Dim name = ""
 
                 Select Case rot
                     Case 90
@@ -4720,6 +4721,20 @@ Public Class MainForm
 
 
             '   ----------------------------------------------------------------
+            Dim attachmentsPage = ui.CreateFlowPage("Attachments")
+
+            b = ui.AddBool(attachmentsPage)
+            b.Text = "Demux Attachments"
+            b.Checked = p.DemuxAttachments
+            b.SaveAction = Sub(val) p.DemuxAttachments = val
+
+            b = ui.AddBool(attachmentsPage)
+            b.Text = "Add Attachments to Muxing"
+            b.Checked = p.AddAttachmentsToMuxer
+            b.SaveAction = Sub(val) p.AddAttachmentsToMuxer = val
+
+
+            '   ----------------------------------------------------------------
             ui.CreateFlowPage("Thumbnails", True)
 
             b = ui.AddBool()
@@ -4747,7 +4762,7 @@ Public Class MainForm
             thumbsQuality.NumEdit.Value = p.ThumbnailerSettings.GetInt("ImageQuality", 70)
             thumbsQuality.NumEdit.SaveAction = Sub(value) p.ThumbnailerSettings.SetInt("ImageQuality", CInt(value))
 
-            Dim thumbsHeaderBackColor As SimpleUI.ColorPickerBlock
+            Dim thumbsHeaderBackColor As SimpleUI.ColorPickerBlock = Nothing
 
             Dim thumbsImageBackColor = ui.AddColorPicker()
             thumbsImageBackColor.Text = "Background Color:"

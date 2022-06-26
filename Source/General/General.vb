@@ -135,7 +135,7 @@ Public Class Folder
                         .Content = "Select the location of the settings directory:"
                     }
 
-                    td.AddCommand(Startup + "Settings", "This is the recommended path as long as you have write permissions. Settings are more bound to their StaxRip version and won't be automatically or accidentely transfered to the next version.", Startup + "Settings")
+                    td.AddCommand(Startup + "Settings", "This is the recommended path as long as you have write permissions. Settings are more bound to their StaxRip version and won't be automatically or accidentally transferred to the next version.", Startup + "Settings")
                     td.AddCommand(AppDataRoaming + "StaxRip", "A good choice if you don't have write permissions in the StaxRip folder or if you want to store the settings in a more common place along with other app settings.", AppDataRoaming + "StaxRip")
                     td.AddCommand(AppDataCommon + "StaxRip", "This is another option for common settings and also the fallback directory, in case you don't select another directory.", AppDataCommon + "StaxRip")
                     td.AddCommand("Browse for custom directory", "You prefer another directory? Feel free to select a directory of your choice. Make sure necessary write permissions are granted.", "Custom")
@@ -397,6 +397,7 @@ Public Class SafeSerialization
             iface.WasUpdated = True
             Return True
         End If
+        Return False
     End Function
 
     'legacy
@@ -596,6 +597,7 @@ table {
         If value <> "" AndAlso (value.Contains("[") OrElse value.Contains("'''")) Then
             Return True
         End If
+        Return False
     End Function
 
     Sub WriteTips(ParamArray tips As StringPairList())
@@ -863,6 +865,7 @@ Public Class CliArg
                 Return True
             End If
         Next
+        Return False
     End Function
 
     Function GetInt() As Integer
@@ -1015,6 +1018,7 @@ Public Class Command
 
             Return paramList.Join(BR)
         End If
+        Return ""
     End Function
 End Class
 
@@ -1046,6 +1050,7 @@ Public Class CommandManager
                 Return True
             End If
         Next
+        Return False
     End Function
 
     Function GetCommand(name As String) As Command
@@ -1058,6 +1063,7 @@ Public Class CommandManager
                 Return Commands(i)
             End If
         Next
+        Return Nothing
     End Function
 
     Sub AddCommandsFromObject(obj As Object)
@@ -1143,6 +1149,7 @@ Public Class CommandManager
                 End If
             End If
         Next
+        Return False
     End Function
 
     Function GetTips() As StringPairList

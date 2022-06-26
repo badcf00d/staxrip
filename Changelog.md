@@ -1,29 +1,144 @@
-not published yet
-=========================
+<!--
+v2.14.0 (not published yet)
+====================
 
-- New Discord Server Link: https://discord.gg/uz8pVR79Bd, if you haven't joined in yet
+- 
+- Update tools
+- Update AviSynth+ plugins
+- Update Dual plugins
+- Update VapourSynth plugins
+-->
+
+v2.13.0 (2022-05-10)
+====================
+
+- x265: Add "--aq-bias-strength" param for AQ Modes 3 and 5
+- svt-av1: Add and update multiple params ([#863](/../../issues/863))
+- Show current frame number on Crop window on status bar
+- Update tools
+  - NVEnc v6.01
+  - VCEEnc v7.00
+- Update AviSynth+ plugins
+  - AddGrainC v1.8.4
+  - AnimeIVTC v2.386 2022-03-20 mod
+  - Average v0.95
+  - AvsResize r14
+  - CropResize 2022-01-28
+  - D2VSource v1.2.4
+  - Deblock_QED 2020.04.06 HBD
+  - DeHalo_alpha 2021.04.05
+  - DeHaloHmod v2.472
+  - DTFTest v1.9.7 (MSVC)
+  - EEDI2 v1.0.0
+  - FFT3DFilter v2.10
+  - hqdn3d v1.1.1
+  - JPSDR v3.2.8 (W7 AVX2)
+  - Masktools2 v2.2.30
+  - pSharpen 2020.10.31 HBD
+  - QTGMC v3.384s
+  - ResizeX v1.0.1 mod 9.40
+  - SMDegrain v3.5.0d
+  - TComb v2.3
+  - TNLMeans v1.1
+  - VapourSource v0.2
+  - Vinverse v0.9.4
+  - Vscube v1.3
+  - Zs_RF_Shared v1.158
+- Update Dual plugins
+  - DGIndex v2.0.0.7
+  - DGMPGDec v2.0.0.7
+  - ffms2 v3.0.1.0 1325+16 6ad7738 StvG
+  - L-SMASH-Works v20220505
+- Update VapourSynth plugins
+  - ...
+
+
+v2.12.0 (2022-04-19)
+====================
+
+- x265: Add new supported option "--aq-mode 5", which was introduced in x265 aMod (DJATOM, Patman)
+- NVEnc: Add new param "--vpp-convolution3d"
+- QSVEnc: Add experimental AV1 codec
+- Fix not muxing attachments due to opposed working checkbox ([#847](/../../issues/847))
+- Fix missing VS plugin due to G41Fun update ([#848](/../../issues/848))
+- Remove unneccessary quotation marks from Command Line Audio Profile ([#853](/../../issues/853))
+- Use pipe when modifying channels for qaac ([#854](/../../issues/854))
+- Use existing/cached video information after muxing instead of reloading the script to prevent broken generated files ([#777](/../../issues/777))
+- Update tools
+  - AviSynth+ v3.7.2
+  - MKVToolNix v67.0
+  - NVEnc v6.00
+  - QSVEnc v7.01
+- Update VapourSynth plugins
+  - vcm v2020-09
+
+
+v2.11.0 (2022-04-02)
+====================
+
+- Fix typo in Settings Directory dialog (bdr99, [#798](/../../issues/798))
+- Update parameters for AOMEnc (badcf00d, Dendraspis, [#821](/../../issues/821))
+- Rearrange SMDegrain's list position and definition for VS ([#797](/../../issues/797))
+- Add "Processing" to remembered window positions
+- Add new macros %random:digits%, %current_date%, %current_time%, %current_time24% ([#802](/../../issues/802))
+- Fix UI issues regarding mkvextract
+- Fix remove confirmation on Lists showing first item name only even if multiple items are selected
+- Reorganize encoder profiles
+- Add NVEnc parameters --lut3d, --lut3d_interp, --dolby-vision-rpu, --dolby-vision-profile
+- Add VCEEnc parameter --thread-affinity, --qvbr, --qvbr-quality ([#792](/../../issues/792))
+- Add QSVEnc parameters --thread-affinity, --dhdr10-info, --dolby-vision-rpu, --dolby-vision-profile, --qvbr, --qvbr-quality
+- Add x265 Dolby Vision Profile 8.4
+- Fix minor mkvextract demux issue ([#833](/../../issues/833))
+- Add demux support for DVBSUB subtitles ([#833](/../../issues/833))
+- Add new audio command line macros %streamid0% and %streamid1% ([#842](/../../issues/842))
+- Raise x265 atc-sei parameter upper limit ([#815](/../../issues/815))
+- Optimize Check for Updates
+- Show also the path of the project when it's not found
+- Don't close Jobs window if project fails to load
+- Add "Demux Attachments" and "Add Attachments to Muxer" to project options
+- Add "Bitrate" to VCEEnc and QSVEnc options
+- Update tools
+  - AOMEnc v3.2.0-393-g402e264b9-x64-gcc11.2.0 Patman
+  - ffmpeg-N v106445-g723065a346-x64-gcc11.2.0 Patman
+  - MediaInfo v22.03
+  - MediaInfo.NET v7.3.0.0
+  - MP4Box v2.1-DEV-rev79-gdf29bc8a0-x64-gcc11.2.0 Patman
+  - mpvnet v5.7.0.0
+  - MKVToolNix v66.0
+  - NVEnc v5.46
+  - qaac v2.73
+  - QSVEnc v6.10
+  - Rav1e v0.5.0 (p20220322-2-gcbdf0703)-x64-gcc11.2.0 Patman
+  - Subtitle Edit v3.6.5
+  - SvtAv1EncApp v0.9.1-81-gdf313c62-x64-gcc11.2.0 Patman
+  - VCEEnc v6.17
+  - x264 v0.164.3094+13-7816202-[Mod-by-Patman]-x64-gcc11.2.0
+  - x265 v3.5+37+12-4e46995bc-[Mod-by-Patman]-x64-msvc1931
+- Update filters
+  - TemporalDegrain2 v2.4.3
+  - G41Fun v2021-09-23
 
 
 v2.10.0 (2021-10-06)
-=========================
+====================
 
 - New Discord Server Link: https://discord.gg/uz8pVR79Bd, if you haven't joined in yet
 - Remove Extension folder from mpv.net (Dendraspis, [#770](/../../issues/770))
 - ~~Replace obsolete vs.get_core() with vs.core (Dendraspis, [#787](/../../issues/787))~~
-- Updated tools
+- Update tools
   - MediaInfo v21.09
   - VapourSynth R54 [back due to compatibility issues]
 
 
 v2.9.0 (2021-10-05)
-=========================
+===================
 
 - Fix Check for Updates (Dendraspis)
 - Add --thread-affinity to NVEnc (Dendraspis)
 - Add "Warn for invalid Output Mod only if video is cropped" option (Dendraspis)
 - Fix --quant-b-adapt for AOMEnc (Dendraspis, [#785](/../../issues/785))
 - Fix non-synced bitrate between options and main window for AOMEnc (Dendraspis, [#785](/../../issues/785))
-- Updated tools
+- Update tools
   - MKVToolNix v61.0
   - NVEnc v5.40
   - Python v3.9.7
@@ -31,7 +146,7 @@ v2.9.0 (2021-10-05)
   - Subtitle Edit v3.6.2
   - VapourSynth R56
   - VCEEnc v6.16
-- Updated filters
+- Update filters
   - JincResize v2.1.0
   - ffms2 v2.40.1285+13 1c6169a StvG
   - FFT3D Neo r11
@@ -39,13 +154,13 @@ v2.9.0 (2021-10-05)
 
 
 v2.8.0 (2021-08-01)
-=========================
+===================
 
 - Separate checking all and required only apps on AppsForm (Dendraspis)
 - Add more parameters for VCEEnc (Dendraspis, [#757](/../../issues/757))
 - Add --chroma-qp-offset param for NVEnc (Dendraspis)
 - Add --traditional-scenecut param for x265 (Dendraspis)
-- Updated tools
+- Update tools
   - AOMEnc v3.1.2-588-gd1b830121-x64-gcc10.3.0 Patman
   - ffmpeg-N-103081-gf7958d0883-x64-gcc10.3.0 Patman
   - MP4Box v1.1.0-DEV-rev1161-g2dfbf0c7a-x64-gcc10.3.0 Patman
@@ -56,12 +171,12 @@ v2.8.0 (2021-08-01)
   - VCEEnc v6.13
   - x264 v0.164.3065+9-7a0e6e8-.Mod-by-Patman.-x64-gcc10.3.0
   - x265 v3.5+12+14-106329cbd-.Mod-by-Patman.-x64-gcc10.3.0
-- Updated filters
+- Update filters
   - SMDegrain v3.1.2.115s by JKyle
 
 
 v2.7.0 (2021-07-25)
-=========================
+===================
 
 - [!!!] Changed names cause all encoder profiles to be reset. This means you have to re-set them by hand or backup and restore them after update.
 - [!!!] Changed (context-)menus from earlier versions must be restored, manually adjusted or need a global settings reset in order to see and use them.
@@ -90,7 +205,7 @@ v2.7.0 (2021-07-25)
     AddGrain(VS), AnimeIVTC(AVS), Bifrost(AVS/VS), Bwdif(AVS), Checkmate(AVS), ChubbyRain2(AVS), DeFlicker(AVS), DeJump(AVS), DeRainbow(AVS), DotKill(AVS/VS), ExactDeDup(AVS), FillBorders(AVS/VS), FillDrops(AVS/VS), Fix Horizontal Rainbow(AVS profile), GRunT(AVS plugin), HDRTools(AVS), Letterbox(AVS/VS), NNEDI3_rpow2(AVS/VS), ReduceFlicker(AVS), RT_Stats(AVS plugin), Santiag(AVS), Srestore(AVS plugin), TimecodeFPS(AVS), TIVTC(AVS), VFRToCFR(AVS/VS), vsCnr2(AVS)
     - Updated filter profiles:  
     AddBorders(VS), AddGrainC(AVS), Bwdif(VS), ChubbyRain2(AVS), DeRainbow(VS), DirectShowSource(AVS), DSS2(AVS), FFMS2(AVS/VS), FFVideoSource(AVS), KNLMeansCL(AVS/VS), SelectEvery(AVS/VS), SelectRangeEvery(AVS), SeparateFields(VS), TemporalDegrain2(VS), Weave(AVS/VS)
-- Updated tools
+- Update tools
   - AOMEnc v3.1.2-553-g997549cf4-x64-gcc10.3.0 Patman
   - chapterEditor v1.29
   - MKVToolNix v59.0
@@ -102,7 +217,7 @@ v2.7.0 (2021-07-25)
   - Rav1e v0.5.0-alpha-(p20210720-4-g0f25619a)-x64-gcc10.3.0 Patman
   - SVT-AV1 v0.8.7-30-g3af80294-x64-gcc10.3.0 Patman
   - VapourSynth R54
-- Updated Filters
+- Update Filters
   - AddGrain r8
   - AvsResize r9 StvG
   - Bifrost v2.1.0 (AVS) / v2.2 (VS)
@@ -137,7 +252,7 @@ v2.7.0 (2021-07-25)
 
 
 v2.6.0 (2021-05-22)
-=========================
+===================
 
 - [ ] Might break settings from previous version, so starting with new settings is recommended
 - [ ] Might break templates and jobs from previous version, so checking or renewing them is recommended
@@ -188,7 +303,7 @@ v2.6.0 (2021-05-22)
 
 
 v2.5.0 (2021-05-03)
-=========================
+===================
 
 - [ ] Might break settings from previous version, so starting with new settings is recommended
 - [ ] Might break templates and jobs from previous version, so checking or renewing them is recommended
@@ -243,7 +358,7 @@ v2.5.0 (2021-05-03)
 
 
 v2.4.0 (2021-04-09)
-=========================
+===================
 
 - [ ] Might break settings from previous version, so starting with new settings is recommended
 - [X] Might break templates and jobs from previous version, so checking or renewing them is recommended
@@ -275,7 +390,7 @@ v2.4.0 (2021-04-09)
 
 
 v2.3.0 (2021-03-28)
-=========================
+===================
 
 - [ ] Might break settings from previous version, so starting with new settings is recommended
 - [ ] Might break templates and jobs from previous version, so checking or renewing them is recommended
@@ -301,7 +416,7 @@ v2.3.0 (2021-03-28)
 
 
 v2.2.0 (2021-03-26)
-=========================
+===================
 
 - [X] Might break settings from previous version, so starting with new settings is recommended
 - [X] Might break templates and jobs from previous version, so checking or renewing them is recommended
